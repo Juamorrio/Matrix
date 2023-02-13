@@ -1,0 +1,118 @@
+from __future__ import annotations
+from typing import TypeVar, Generic, Callable
+from lab.tools.tool import check_argument, lineas_de_csv
+from fractions import Fraction
+
+
+
+E = TypeVar("E")
+
+class Matriz(Generic[E]):
+
+    def __init__(self, datos: list[list[E]]) -> None:
+        self.__datos = datos 
+        
+        
+    @staticmethod
+    def of(datos:list[list[E]]) -> Matriz[E]:
+        return Matriz(datos)
+    
+    @staticmethod
+    def of_file(fichero:str, t:Callable[[str],E]) -> Matriz[E]:
+        ln:list[list[E]] = lineas_de_csv(fichero, delimiter=' ')
+        ls:list[list[E]] = []
+        for linea in ln:
+            for x in linea:
+                x:E= t(x)
+                ls.append(x)
+        n:int = len(ln)
+        ls=[ls[i: i+n] for i in range(0 ,len(ls), n)]
+        return Matriz.of(ls)
+    
+        
+
+    @property
+    def nf(self)->int:
+        return len(self.__datos)
+    
+    @property
+    def nc(self)->int:   
+        acum_columnas:list[int] = [lista[0] for lista in self.__datos]
+        return len(acum_columnas)
+    
+    def get(self,f:int,c:int)->E: 
+        check_argument(0<=f<=self.nf, f'la fila debe ser mayor o igual a 0 \
+        y menor o igual al numero de filas totales')
+        check_argument(0<=c<=self.nc, f'la columna debe ser mayor o igual a 0 \
+        y menor o igual al numero de columnas totales')
+        fila:list[E] = self.datos[f]
+        elemento:E = fila[c]
+        return elemento
+    
+    @property
+    def traspuesta(self)->Matriz[E]:
+        ln:list[list[E]] = [lista[i] for i in range(len(self.datos[0])) for lista in self.datos]
+        n:int = len(self.datos)
+        ln=[ln[i: i+n] for i in range(0 ,len(ln), n)]
+        
+        return Matriz.of(ln)
+        
+ 
+    @property
+    def es_simetrica(self)->bool:
+        check_argument(self.nf==self.nc, 'La matriz debe ser cuadrada.')
+        ln:list[list[E]] = [lista[i] for i in range(len(self.datos[0])) for lista in self.datos]
+        n:int = len(self.datos)
+        ln=[ln[i:i + n] for i in range(0 ,len(ln), n)]
+        
+        if self.datos == ln:
+            return True
+        else:
+            return False
+        
+    
+    def submatriz(self,f1:int,c1:int,f2:int,c2:int)->Matriz[E]:    
+        check_argument(0<=f1<f2<self.nf and 0<=c1<c2<self.nc, f'el numero de filas: {self.nf} debe ser mayor que f2:{f2},\
+        f2 debe ser mayor que f1:{f1} y f1 debe ser mayor o igual a 0. El numero de columnas: {self.nc} debe ser mayor \
+        que c2: {c2}, c2 debe ser mayor que c1:{c1} y c1 debe ser mayor o igual a 0 ')
+        
+        submatriz:list[list[E]] = []
+        for i in self.datos[f1:f2]:
+            submatriz.append(i[c1:c2])
+            
+        return Matriz.of(submatriz)
+        
+    
+    @property
+    def datos(self)->list[list[E]]:
+        check_argument(self.nf>0, 'El numero de filas debe ser mayor de 0.')
+        check_argument(self.nc>0, 'El numero de columnas debe ser mayor de 0.')
+        for lista in self.__datos:
+            check_argument(len(lista)==len(self.__datos[0]), 'Todas las listas deben tener el mismo tamaño.')
+        
+        return self.__datos
+        
+        
+    
+    
+    def __str__(self) -> None: 
+        ln:list[list[E]] = []
+        for lista in self.datos:
+            convertir_str:list[list[str]] = '  '.join(map(str,lista))
+            ln.append(convertir_str)
+            for lista in ln:
+                a = '\n'.join(ln)
+            
+               
+        return a
+        
+        
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Matriz):
+            r:bool = self.nf == other.nf and self.nc == other.nc and self.datos == other.datos
+        return r
+        
+
+if __name__ == '__main__':
+    datos:list[list[E]] = [[0,1,2], [1,2,1], [4,1,8]]
