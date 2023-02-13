@@ -1,0 +1,156 @@
+rom __future__ import annotations
+from typing import TypeVar, Generic, Callable
+from fractions import Fraction
+from lab.tipos.Matriz import Matriz
+from lab.tools.tool import check_argument
+
+E = TypeVar("E")
+
+class Fraction_Matriz(Matriz[Fraction]):
+       
+    @staticmethod
+    def of(datos:list[list[Fraction]])->Fraction_Matriz:
+        return Fraction_Matriz(datos)
+        
+    
+
+    @staticmethod
+    def of_file_fraction(file:str)->Fraction_Matriz:
+        
+        m:Matriz = Matriz.of_file(file, lambda x: Fraction(x))
+        
+        return Fraction_Matriz.of(m.datos)
+    
+    @staticmethod
+    def zero(nf:int=3) -> Fraction_Matriz:
+        check_argument(nf>=2 and nf<9, 'nf no tiene un valor correcto')
+        ln:list[list[int]] = []
+        for i in range(0, nf*nf):
+            ln.append(0)
+            
+        n:int = nf
+        ln=[ln[i: i+n] for i in range(0 ,len(ln), n)]
+        return Fraction_Matriz.of(ln)
+    
+    @staticmethod 
+    def one(nf:int=4) -> Fraction_Matriz:
+        check_argument(nf>=2 and nf <=8, 'nf no tiene un valor correcto')
+        ln:list[list[int]] = []
+        for i in range(nf*nf):
+            ln.append(0)
+            
+        n:int = nf
+        ln=[ln[i: i+n] for i in range(0 ,len(ln), n)]
+        for lista in ln:
+            for i in range(nf):
+                ln[i][i] = 1
+                
+        return Fraction_Matriz.of(ln)
+                
+        
+
+
+    @property
+    def es_antisimetrica(self)->bool:
+        check_argument(self.nf == self.nc, 'La matriz debe ser cuadrada')
+        
+        matriz:Fraction_Matriz = Fraction_Matriz.of(self.datos)
+        acum_neg:list[list[E]] = [x*-1 for lista in self.datos for x in lista]  
+        n:int = len(self.datos)
+        acum_neg=[acum_neg[i: i+n] for i in range(0 ,len(acum_neg), n)]
+        matriz2: Fraction_Matriz = Fraction_Matriz.of(acum_neg)
+        
+        return  matriz2 == matriz.traspuesta
+    
+    @property
+    def traza(self) -> Fraction:
+        check_argument(self.nf == self.nc, 'La matriz debe ser cuadrada')
+        suma:int = 0
+        for i in range(len(self.datos)):
+            suma+= self.datos[i][i]
+                
+        return suma
+            
+            
+        
+        
+    
+
+    def __add__(self,other:Fraction_Matriz)->Fraction_Matriz:
+        check_argument(self.nf == other.nf and self.nc == other.nc, 'el número de filas y de columnas de ambas matrices deben ser iguales')
+       
+        acum:list[list[E]] = [Fraction(n) for lista in self.datos for n in lista]
+        acum_2:list[list[E]] = [Fraction(n) for lista in other.datos for n in lista]
+        suma:list[list[E]] = [acum[i] + acum_2[i] for i in range(len(acum))]
+        n:int = len(self.datos)
+        suma=[suma[i: i+n] for i in range(0 ,len(suma), n)]
+        
+        return Fraction_Matriz.of(suma)
+
+        
+        
+        
+        
+        
+        
+        
+    
+    def __sub__(self,other:Fraction_Matriz)->Fraction_Matriz:
+        check_argument(self.nf == other.nf and self.nc == other.nc, 'el número de filas y de columnas de ambas matrices deben ser iguales')
+        
+        acum:list[list[E]] = [Fraction(n) for lista in self.datos for n in lista]
+        acum_2:list[list[E]] = [Fraction(n) for lista in other.datos for n in lista]
+        resta:list[list[E]] = [acum[i] - acum_2[i] for i in range(len(acum))]
+        n: int = len(self.datos)
+        resta=[resta[i: i+n] for i in range(0 ,len(resta), n)]
+        return Fraction_Matriz.of(resta)
+        
+    
+    def __mul__(self,other:Fraction_Matriz)->Fraction_Matriz:
+        check_argument(self.nc == other.nf, 'El numero de columnas de la matriz A tiene que coincidir con el\
+        numero de filas de la matriz B.')
+        producto:list[list[E]] = []
+        
+        for i in range(len(self.datos)):
+            
+            for n in range(len(other.datos[0])):
+                suma:int=0
+                for p in range(len(other.datos)):
+                    
+                    suma += self.datos[i][p]*other.datos[p][n]
+                producto.append(suma)
+            
+        n:int = len(self.datos)
+        producto=[producto[i: i+n] for i in range(0 ,len(producto), n)]
+        return Fraction_Matriz.of(producto)
+    
+    def __pow__(self, n:int=2) -> Fraction_Matriz:
+        check_argument(n<=10 and n>=2, 'El valor de n no es posible')
+        matriz:Fraction_Matriz = Fraction_Matriz.of(self.datos)
+        
+        for i in range(n):
+            a:Fraction_Matriz = matriz*matriz
+            
+        return a
+            
+            
+            
+        
+        
+        
+            
+        
+        
+    
+if __name__ == '__main__':
+    datos:list[list[int]] = [[1,-1], [1,0]]
+    matriz1:Fraction_Matriz = Fraction_Matriz.of(datos)
+    a= matriz1**3
+    print(a)
+    
+    
+    
+
+
+
+    
